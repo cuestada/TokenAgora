@@ -12,12 +12,32 @@ app = FastAPI(title="Agora RTC Token Server (007)")
 
 class TokenResponse(BaseModel):
     token: str
+def _resolve_role(role: str):
+    r = (role or "").strip().lower()
+
+    if r in ("rolepublisher", "publisher", "pub", "broadcaster", "host"):
+        want = "publisher"
+    elif r in ("rolesubscriber", "subscriber", "sub", "audience"):
+        want = "subscriber"
+    else:
+        want = "publisher"
+
+    pub = getattr(rtc_mod, "Role_Publisher", None) or getattr(rtc_mod, "RolePublisher", None) or getattr(rtc_mod, "ROLE_PUBLISHER", None)
+    sub = getattr(rtc_mod, "Role_Subscriber", None) or getattr(rtc_mod, "RoleSubscriber", None) or getattr(rtc_mod, "ROLE_SUBSCRIBER", None)
+
+    return (pub if pub is not None else 1) if want == "publisher" else (sub if sub is not None else 2)
+
+
+# Endpoint health (opcional pero útil)
+@app.get("/")
+def root():
+    return {"status": "ok"}
 
 @app.get("/rtc/token", response_model=TokenResponse)
 def rtc_token(
     channel: str = Query(..., min_length=1),
     uid: int = Query(..., ge=0),
-    role: str = Query("publisher", pattern="^(publisher|subscriber)$"),
+    role: str = Query("publisher"),
     ttl: int = Query(3600, ge=60, le=86400),
 ):
     if not APP_ID or not APP_CERT:
