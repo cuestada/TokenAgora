@@ -3,7 +3,7 @@ from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel
 
 # ajusta el import según dónde pegues los .py
-from agora_token.RtcTokenBuilder2 import RtcTokenBuilder2, Role_Publisher, Role_Subscriber
+import agora_token.RtcTokenBuilder2 as rtc_mod  # <-- import del módulo entero
 
 APP_ID = os.getenv("AGORA_APP_ID", "")
 APP_CERT = os.getenv("AGORA_APP_CERTIFICATE", "")
